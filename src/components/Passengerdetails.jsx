@@ -126,7 +126,7 @@ const PassengerDashboard = () => {
             />
             <div className="mb-2">
               <h3 className="text-md font-medium text-gray-700 mb-2">Payment Mode</h3>
-              <label className="mr-2">
+              <label className="block mb-1">
                 <input
                   type="radio"
                   value="online"
@@ -135,7 +135,7 @@ const PassengerDashboard = () => {
                 />
                 Online Payment
               </label>
-              <label>
+              <label className="block">
                 <input
                   type="radio"
                   value="offline"
