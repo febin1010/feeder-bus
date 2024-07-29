@@ -18,38 +18,45 @@ export function LoginForm() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
+  
+  console.log("Backend URL:", backendUrl); // Log the URL
+  
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-  
+
     try {
-      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/login`, {
+      if (!backendUrl) {
+        throw new Error('Backend URL is not defined');
+      }
+
+      const response = await fetch(`${backendUrl}/api/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
       });
-  
-      const data = await response.json();
-  
-      if (response.ok) {
-        localStorage.setItem('token', data.token);
-        alert('Login successful');
-      } else {
-        console.error('Login error:', data);
-        setError(data.message || 'Login failed');
+
+      if (!response.ok) {
+        const errorData = await response.text(); // Use text() to get non-JSON response
+        throw new Error(errorData || 'Login failed');
       }
+
+      const data = await response.json();
+
+      localStorage.setItem('token', data.token);
+      alert('Login successful');
+      navigate('/driver-dashboard'); // Redirect on successful login
     } catch (error) {
       console.error('An error occurred while logging in:', error);
-      setError('An error occurred while logging in');
+      setError(error.message || 'An error occurred while logging in');
     } finally {
       setLoading(false);
     }
   };
-  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
