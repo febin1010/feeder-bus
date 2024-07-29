@@ -10,6 +10,3 @@ node_modules/
 # Ignore build output
 dist/
 build/
-
-# Environment variables file
-.env
