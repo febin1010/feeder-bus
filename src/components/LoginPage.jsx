@@ -64,7 +64,7 @@ export function LoginForm() {
         <CardHeader className="space-y-2">
           <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-semibold">Login</CardTitle>
           <CardDescription className="text-sm sm:text-base md:text-lg">
-            Enter your email below to login to your account.
+            Enter your name below to login to your account.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
