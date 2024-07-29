@@ -125,6 +125,7 @@ const PassengerDashboard = () => {
               className="w-full p-2 border border-gray-300 rounded-md mb-2"
             />
             <div className="mb-2">
+              <h3 className="text-md font-medium text-gray-700 mb-2">Payment Mode</h3>
               <label className="mr-2">
                 <input
                   type="radio"
