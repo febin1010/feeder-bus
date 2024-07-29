@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const DriverDashboard = () => {
   const [time, setTime] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    // Simulate data submission
     alert(`Time: ${time}`);
+    navigate('/passenger-dashboard');
   };
 
   return (

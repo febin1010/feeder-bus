@@ -8,14 +8,14 @@ import PassengerDashboard from './components/Passengerdetails'
 
 
 function App() {
-  
   return (
-
-    <PassengerDashboard></PassengerDashboard>
-    
-    
-
-  )
+    <Router>
+      <Routes>
+        <Route path="/" element={<LoginForm />} />
+        <Route path="/driver-dashboard" element={<DriverDashboard />} />
+        <Route path="/passenger-dashboard" element={<PassengerDashboard />} />
+      </Routes>
+    </Router>
+  );
 }
-
 export default App
