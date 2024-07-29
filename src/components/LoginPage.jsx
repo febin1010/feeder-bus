@@ -1,5 +1,5 @@
+// src/components/LoginPage.jsx
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -12,15 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-function LoginForm() {
-  const navigate = useNavigate();
-
-  const handleSignIn = (event) => {
-    event.preventDefault();
-    // Simulate successful login
-    navigate('/driver-dashboard');
-  };
-
+export function LoginForm() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
       <Card className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl p-6 bg-white shadow-md rounded-lg">
@@ -52,7 +44,7 @@ function LoginForm() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={handleSignIn} className="w-full py-2 sm:py-3 md:py-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
+          <Button className="w-full py-2 sm:py-3 md:py-4 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
             Sign in
           </Button>
         </CardFooter>
@@ -60,5 +52,3 @@ function LoginForm() {
     </div>
   );
 }
-
-export default LoginForm;
