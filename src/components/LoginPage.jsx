@@ -23,21 +23,21 @@ export function LoginForm() {
     e.preventDefault();
     setLoading(true);
     setError('');
-
+  
     try {
-      const response = await fetch('http://localhost:5000/api/login', {
+      const response = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
       });
-    
+  
       const data = await response.json();
-    
+  
       if (response.ok) {
         localStorage.setItem('token', data.token);
-        navigate('/driver-dashboard'); // Redirect to DriverDashboard upon successful login
+        alert('Login successful');
       } else {
         console.error('Login error:', data);
         setError(data.message || 'Login failed');
@@ -49,6 +49,7 @@ export function LoginForm() {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
