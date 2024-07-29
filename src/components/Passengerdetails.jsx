@@ -32,8 +32,10 @@ const PassengerDashboard = () => {
   const handleTripEnd = () => {
     if (window.confirm('Are you sure you want to end the trip?')) {
       setIsTripStarted(false);
+      window.location.reload();
     }
   };
+  
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-purple-600 p-4">
