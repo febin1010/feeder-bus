@@ -11,6 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useNavigate } from 'react-router-dom';
+import kmrlLogo from '@/components/KMRL-logo.png'; // Adjust the import path as necessary
 
 export function LoginForm() {
   const [email, setEmail] = useState('');
@@ -59,10 +60,18 @@ export function LoginForm() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-purple-600 p-4">
+      <div className="flex items-center mb-8">
+        <div className="relative flex-shrink-0">
+          <img src={kmrlLogo} alt="KMRL Logo" className="h-24 w-24 object-contain" style={{ filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.5))' }} />
+        </div>
+        <h1 className="ml-4 text-4xl sm:text-5xl md:text-6xl font-bold text-white">
+          Feeder Bus
+        </h1>
+      </div>
       <Card className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl p-6 bg-white shadow-md rounded-lg">
         <CardHeader className="space-y-2">
-          <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-semibold">Login</CardTitle>
+          <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-semibold">Driver Login</CardTitle>
           <CardDescription className="text-sm sm:text-base md:text-lg">
             Enter your name below to login to your account.
           </CardDescription>
@@ -70,18 +79,18 @@ export function LoginForm() {
         <CardContent className="grid gap-4">
           <form onSubmit={handleLogin}>
             <div className="grid gap-2">
-              <Label htmlFor="email" className="text-sm sm:text-base md:text-lg">Email</Label>
+              <Label htmlFor="email" className="text-sm sm:text-base md:text-lg">Name</Label>
               <Input
                 id="email"
-                type="email"
-                placeholder="m@example.com"
+                type="text"
+                placeholder=""
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600 sm:px-4 sm:py-3 md:px-5 md:py-4"
               />
             </div>
-            <div className="grid gap-2 mb-4"> {/* Added margin-bottom for spacing */}
+            <div className="grid gap-2 mb-4 mt-4"> {/* Added margin-bottom and margin-top for spacing */}
               <Label htmlFor="password" className="text-sm sm:text-base md:text-lg">Password</Label>
               <Input
                 id="password"

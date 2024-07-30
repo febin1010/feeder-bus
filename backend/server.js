@@ -64,6 +64,40 @@ const startServer = async () => {
       }
     });
 
+    app.post('/api/submit-trip', async (req, res) => {
+        const { token, trip, time } = req.body;
+      
+        try {
+          console.log('Received request to submit trip:', { token, trip, time });
+      
+          // Verify the token and get the driver's ID
+          const decoded = jwt.verify(token, JWT_SECRET);
+          const userId = decoded.userId;
+          console.log('Token verified, userId:', userId);
+      
+          // Fetch the driver's name using the userId
+          const [userResults] = await db.execute('SELECT name FROM driverlogin WHERE id = ?', [userId]);
+          const driverName = userResults[0]?.name;
+          console.log('Fetched driver name:', driverName);
+      
+          if (!driverName) {
+            console.error('Driver not found');
+            return res.status(404).json({ message: 'Driver not found' });
+          }
+      
+          // Insert the trip details into the database
+          const query = 'INSERT INTO trips (driver_name, trip, time) VALUES (?, ?, ?)';
+          await db.execute(query, [driverName, trip, time]);
+          console.log('Trip details inserted into database');
+      
+          res.status(201).json({ message: 'Trip details submitted' });
+        } catch (error) {
+          console.error('Error submitting trip details:', error.message, error.stack);
+          res.status(500).json({ message: 'Error submitting trip details', error: error.message });
+        }
+      });
+      
+
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });

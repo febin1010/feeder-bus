@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import kmrlLogo from '@/components/KMRL-logo.png'; // Adjust the import path as necessary
 
 const PassengerDashboard = () => {
   const [passengers, setPassengers] = useState([]);
@@ -7,6 +9,15 @@ const PassengerDashboard = () => {
   const [paymentMethod, setPaymentMethod] = useState('online');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTripStarted, setIsTripStarted] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Check if the driver is logged in by checking the token in local storage
+    const token = localStorage.getItem('token');
+    if (!token) {
+      navigate('/'); // Redirect to login if not logged in
+    }
+  }, [navigate]);
 
   const handleAddPassenger = () => {
     if (passengers.length >= 35) {
@@ -35,11 +46,33 @@ const PassengerDashboard = () => {
       window.location.reload();
     }
   };
-  
+
+  const handleLogout = () => {
+    // Clear authentication token
+    localStorage.removeItem('token');
+    // Navigate back to the login page
+    navigate('/');
+  };
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-purple-600 p-4">
       <div className="w-full max-w-4xl bg-white p-4 rounded-lg shadow-lg">
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center">
+            <div className="relative flex-shrink-0">
+              <img src={kmrlLogo} alt="KMRL Logo" className="h-24 w-24 object-contain" style={{ filter: 'drop-shadow(0 0 10px rgba(0,0,0,0.5))' }} />
+            </div>
+            <h1 className="ml-4 text-4xl sm:text-5xl md:text-6xl font-bold text-white">
+              Feeder Bus
+            </h1>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="py-2 px-4 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600"
+          >
+            Logout
+          </button>
+        </div>
         <div className="flex justify-center items-center mb-4 space-x-2">
           <button
             onClick={handleTripStart}
