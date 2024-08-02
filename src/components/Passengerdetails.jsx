@@ -10,48 +10,137 @@ const PassengerDashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isTripStarted, setIsTripStarted] = useState(false);
   const navigate = useNavigate();
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
-    // Check if the driver is logged in by checking the token in local storage
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/'); // Redirect to login if not logged in
     }
   }, [navigate]);
 
-  const handleAddPassenger = () => {
+  const handleAddPassenger = async () => {
+    const tripId = localStorage.getItem('tripId'); // Get tripId from localStorage
+  
+    if (!tripId) {
+      alert('Trip ID is missing. Please start the trip first.');
+      return;
+    }
+  
     if (passengers.length >= 35) {
       alert('Cannot add more than 35 passengers.');
       return;
     }
-    setPassengers([...passengers, { name: newPassenger, paymentMethod }]);
-    setNewPassenger('');
-    setPaymentMethod('online');
-    setIsModalOpen(false);
+  
+    if (!newPassenger || !paymentMethod) {
+      alert('Please enter the passenger name and select a payment method.');
+      return;
+    }
+  
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${backendUrl}/api/add-passenger`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ name: newPassenger, paymentmode: paymentMethod, tripId }), // Include tripId
+      });
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Network response was not ok: ${errorText}`);
+      }
+  
+      const result = await response.json();
+      console.log(result.message); // Handle the result from the server
+  
+      // Update local state
+      setPassengers([...passengers, { id: result.id, name: newPassenger, paymentmode: paymentMethod }]);
+      setNewPassenger('');
+      setPaymentMethod('online');
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error('Error adding passenger:', error.message);
+    }
   };
-
-  const handleMarkAsDeparted = (index) => {
+  
+  const handleMarkAsDeparted = async (index) => {
     const passenger = passengers[index];
-    setPassengers(passengers.filter((_, i) => i !== index));
-    setDepartedPassengers([...departedPassengers, passenger]);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${backendUrl}/api/mark-departed`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id: passenger.id }),
+      });
+
+      if (response.ok) {
+        setPassengers(passengers.filter((_, i) => i !== index));
+        setDepartedPassengers([...departedPassengers, passenger]);
+      } else {
+        const errorText = await response.text();
+        console.error('Failed to mark passenger as departed:', errorText);
+      }
+    } catch (error) {
+      console.error('Error marking passenger as departed:', error.message);
+    }
   };
 
   const handleTripStart = () => {
     setIsTripStarted(true);
   };
 
-  const handleTripEnd = () => {
+  const handleTripEnd = async () => {
+    const tripId = localStorage.getItem('tripId'); // Get tripId from localStorage
+  
+    if (!tripId) {
+      alert('Trip ID is missing.');
+      return;
+    }
+  
     if (window.confirm('Are you sure you want to end the trip?')) {
-      setIsTripStarted(false);
-      window.location.reload();
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${backendUrl}/api/end-trip`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ tripId }), // Include tripId
+        });
+  
+        if (response.ok) {
+          alert('Trip ended successfully');
+          setIsTripStarted(false);
+          window.location.reload();
+        } else {
+          const errorText = await response.text();
+          console.error('Failed to end trip:', errorText);
+        }
+      } catch (error) {
+        console.error('Error ending trip:', error.message);
+      }
     }
   };
+  
 
-  const handleLogout = () => {
-    // Clear authentication token
-    localStorage.removeItem('token');
-    // Navigate back to the login page
-    navigate('/');
+  const handleLogout = async () => {
+    if (isTripStarted) {
+      if (window.confirm('Trip is not ended. Do you want to end the trip before logging out?')) {
+        await handleTripEnd();
+      }
+    }
+
+    if (!isTripStarted) {
+      localStorage.removeItem('token');
+      navigate('/');
+    }
   };
 
   return (
@@ -104,18 +193,18 @@ const PassengerDashboard = () => {
                 <tr>
                   <th className="py-2 px-2 border-b w-1/3">Name</th>
                   <th className="py-2 px-2 border-b w-1/3">Payment Method</th>
-                  <th className="py-2 px-2 border-b w-1/3">Action</th>
+                  <th className="py-2 px-2 border-b w-1/3">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {passengers.map((passenger, index) => (
                   <tr key={index} className="hover:bg-gray-100">
-                    <td className="py-2 px-2 border-b break-words">{passenger.name}</td>
-                    <td className="py-2 px-2 border-b">{passenger.paymentMethod}</td>
-                    <td className="py-2 px-2 border-b">
+                    <td className="py-2 px-2 border-b text-center">{passenger.name}</td>
+                    <td className="py-2 px-2 border-b text-center">{passenger.paymentmode}</td>
+                    <td className="py-2 px-2 border-b text-center">
                       <button
                         onClick={() => handleMarkAsDeparted(index)}
-                        className="py-1 px-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                        className="py-1 px-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-600"
                       >
                         Departed
                       </button>
@@ -126,7 +215,7 @@ const PassengerDashboard = () => {
             </table>
           </div>
         </div>
-        <div className="mt-6">
+        <div className="mt-4">
           <h2 className="text-lg font-medium text-gray-700 mb-2">Departed Passengers</h2>
           <div className="overflow-auto">
             <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden table-fixed">
@@ -139,8 +228,8 @@ const PassengerDashboard = () => {
               <tbody>
                 {departedPassengers.map((passenger, index) => (
                   <tr key={index} className="hover:bg-gray-100">
-                    <td className="py-2 px-2 border-b break-words">{passenger.name}</td>
-                    <td className="py-2 px-2 border-b">{passenger.paymentMethod}</td>
+                    <td className="py-2 px-2 border-b text-center">{passenger.name}</td>
+                    <td className="py-2 px-2 border-b text-center">{passenger.paymentmode}</td>
                   </tr>
                 ))}
               </tbody>
@@ -149,47 +238,48 @@ const PassengerDashboard = () => {
         </div>
       </div>
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-75">
-          <div className="bg-white p-4 rounded-lg shadow-lg w-full max-w-sm">
-            <h2 className="text-lg font-medium text-gray-700 mb-2">Add Passenger</h2>
+        <div className="fixed inset-0 flex items-center justify-center z-50">
+          <div className="bg-white p-4 rounded-lg shadow-lg w-96">
+            <h2 className="text-lg font-medium mb-2">Add Passenger</h2>
             <input
               type="text"
               value={newPassenger}
               onChange={(e) => setNewPassenger(e.target.value)}
-              placeholder="Enter passenger name"
-              className="w-full p-2 border border-gray-300 rounded-md mb-2"
+              placeholder="Passenger Name"
+              className="mb-2 w-full py-2 px-3 border rounded-md"
             />
             <div className="mb-2">
-              <h3 className="text-md font-medium text-gray-700 mb-2">Payment Mode</h3>
-              <label className="block mb-1">
+              <label className="inline-flex items-center">
                 <input
                   type="radio"
                   value="online"
                   checked={paymentMethod === 'online'}
                   onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="form-radio h-4 w-4 text-indigo-600"
                 />
-                Online Payment
+                <span className="ml-2">Online</span>
               </label>
-              <label className="block">
+              <label className="inline-flex items-center ml-4">
                 <input
                   type="radio"
                   value="offline"
                   checked={paymentMethod === 'offline'}
                   onChange={(e) => setPaymentMethod(e.target.value)}
+                  className="form-radio h-4 w-4 text-indigo-600"
                 />
-                Offline Payment
+                <span className="ml-2">Offline</span>
               </label>
             </div>
-            <div className="flex justify-end space-x-2">
+            <div className="flex justify-end">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="py-2 px-2 bg-gray-300 rounded-md hover:bg-gray-400"
+                className="py-2 px-4 bg-gray-300 text-gray-700 rounded-md mr-2"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddPassenger}
-                className="py-2 px-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+                className="py-2 px-4 bg-blue-600 text-white rounded-md"
               >
                 Add
               </button>

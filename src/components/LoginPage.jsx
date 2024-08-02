@@ -27,12 +27,12 @@ export function LoginForm() {
     e.preventDefault();
     setLoading(true);
     setError('');
-
+  
     try {
       if (!backendUrl) {
         throw new Error('Backend URL is not defined');
       }
-
+  
       const response = await fetch(`${backendUrl}/api/login`, {
         method: 'POST',
         headers: {
@@ -40,17 +40,18 @@ export function LoginForm() {
         },
         body: JSON.stringify({ email, password }),
       });
-
+  
       if (!response.ok) {
-        const errorData = await response.text(); // Use text() to get non-JSON response
+        const errorData = await response.text();
         throw new Error(errorData || 'Login failed');
       }
-
+  
       const data = await response.json();
-
+  
       localStorage.setItem('token', data.token);
+      localStorage.setItem('driverName', email); // Store the driver's name
       alert('Login successful');
-      navigate('/driver-dashboard'); // Redirect on successful login
+      navigate('/driver-dashboard');
     } catch (error) {
       console.error('An error occurred while logging in:', error);
       setError(error.message || 'An error occurred while logging in');
@@ -58,6 +59,7 @@ export function LoginForm() {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-r from-blue-500 to-purple-600 p-4">
@@ -72,9 +74,6 @@ export function LoginForm() {
       <Card className="w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl p-6 bg-white shadow-md rounded-lg">
         <CardHeader className="space-y-2">
           <CardTitle className="text-2xl sm:text-3xl md:text-4xl font-semibold">Driver Login</CardTitle>
-          <CardDescription className="text-sm sm:text-base md:text-lg">
-            Enter your name below to login to your account.
-          </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
           <form onSubmit={handleLogin}>
