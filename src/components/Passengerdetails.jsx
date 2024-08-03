@@ -153,8 +153,8 @@ const PassengerDashboard = () => {
   
         if (response.ok) {
           alert('Trip ended successfully');
-          setIsTripStarted(false);
-          window.location.reload();
+          localStorage.removeItem('tripId'); // Clear the tripId from localStorage
+          navigate('/driver-dashboard'); // Redirect to DriverDashboard
         } else {
           const errorText = await response.text();
           console.error('Failed to end trip:', errorText);
@@ -165,7 +165,6 @@ const PassengerDashboard = () => {
     }
   };
   
-
   const handleLogout = async () => {
     if (isTripStarted) {
       if (window.confirm('Trip is not ended. Do you want to end the trip before logging out?')) {

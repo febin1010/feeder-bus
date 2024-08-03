@@ -12,6 +12,7 @@ const DriverDashboard = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const navigate = useNavigate();
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -29,7 +30,7 @@ const DriverDashboard = () => {
     console.log('Submitting with Token:', token);
 
     try {
-      const response = await fetch('http://localhost:5000/api/start-trip', { // Adjust the backend URL if needed
+      const response = await fetch(`${backendUrl}/api/start-trip`, { // Corrected template literal usage
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,7 +70,7 @@ const DriverDashboard = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:5000/api/change-password', { // Adjust the backend URL if needed
+      const response = await fetch(`${backendUrl}/api/change-password`, { // Corrected template literal usage
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
