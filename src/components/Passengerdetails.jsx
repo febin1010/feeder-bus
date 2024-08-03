@@ -284,6 +284,7 @@ const PassengerDashboard = () => {
               className="mb-2 w-full py-2 px-3 border rounded-md"
             />
             <div className="mb-2">
+              <label className="block font-medium mb-1">Payment Mode</label>
               <label className="inline-flex items-center">
                 <input
                   type="radio"
