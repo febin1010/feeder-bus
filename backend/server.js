@@ -169,6 +169,34 @@ const startServer = async () => {
       }
     });
 
+    // Add this inside the startServer function after other routes
+app.get('/api/passengers', authenticateToken, async (req, res) => {
+    const { tripId } = req.query;
+  
+    try {
+      const query = 'SELECT * FROM passengers WHERE trip_id = ? AND is_deboarded = 0';
+      const [rows] = await db.execute(query, [tripId]);
+      res.json(rows);
+    } catch (error) {
+      console.error('Error fetching passengers:', error);
+      res.status(500).send('Error fetching passengers');
+    }
+  });
+  
+  app.get('/api/departed-passengers', authenticateToken, async (req, res) => {
+    const { tripId } = req.query;
+  
+    try {
+      const query = 'SELECT * FROM passengers WHERE trip_id = ? AND is_deboarded = 1';
+      const [rows] = await db.execute(query, [tripId]);
+      res.json(rows);
+    } catch (error) {
+      console.error('Error fetching departed passengers:', error);
+      res.status(500).send('Error fetching departed passengers');
+    }
+  });
+  
+
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });

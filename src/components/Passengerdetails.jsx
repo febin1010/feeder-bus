@@ -16,8 +16,44 @@ const PassengerDashboard = () => {
     const token = localStorage.getItem('token');
     if (!token) {
       navigate('/'); // Redirect to login if not logged in
+      return;
+    }
+
+    const tripId = localStorage.getItem('tripId'); // Get tripId from localStorage
+    if (tripId) {
+      fetchPassengers(tripId, token);
+      fetchDepartedPassengers(tripId, token);
+      setIsTripStarted(false); 
     }
   }, [navigate]);
+
+  const fetchPassengers = async (tripId, token) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/passengers?tripId=${tripId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      setPassengers(data);
+    } catch (error) {
+      console.error('Error fetching passengers:', error);
+    }
+  };
+
+  const fetchDepartedPassengers = async (tripId, token) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/departed-passengers?tripId=${tripId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      const data = await response.json();
+      setDepartedPassengers(data);
+    } catch (error) {
+      console.error('Error fetching departed passengers:', error);
+    }
+  };
 
   const handleAddPassenger = async () => {
     const tripId = localStorage.getItem('tripId'); // Get tripId from localStorage
