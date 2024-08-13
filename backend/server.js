@@ -82,15 +82,15 @@ const startServer = async () => {
     });
 
     app.post('/api/start-trip', authenticateToken, async (req, res) => {
-        const { trip, time } = req.body;
+        const { trip, time, busNumber } = req.body;
         const { email } = req.user;
       
         // Get the current date in the format you want
         const currentDate = new Date().toISOString().split('T')[0];
       
         try {
-          const query = 'INSERT INTO trips (driver_name, trip, time, date) VALUES (?, ?, ?, ?)';
-          const [result] = await db.execute(query, [email, trip, time, currentDate]);
+          const query = 'INSERT INTO trips (driver_name, trip, time, date, bus_no) VALUES (?, ?, ?, ?, ?)';
+          const [result] = await db.execute(query, [email, trip, time, currentDate, busNumber]); // Include busNumber in the query
           const tripId = result.insertId;
           res.json({ tripId });
         } catch (error) {
@@ -98,6 +98,7 @@ const startServer = async () => {
           res.status(500).json({ message: 'Error starting trip', error: error.message });
         }
       });
+      
 
     app.post('/api/add-passenger', authenticateToken, async (req, res) => {
       const { name, paymentmode, tripId } = req.body;
@@ -129,13 +130,17 @@ const startServer = async () => {
         const { tripId } = req.body;
       
         try {
-          const query = 'UPDATE passengers SET is_deboarded = 1, deboarded_time = NOW() WHERE trip_id = ? AND is_deboarded = 0';
-          const [result] = await db.execute(query, [tripId]);
+          // Update the passengers table
+          const passengerQuery = 'UPDATE passengers SET is_deboarded = 1, deboarded_time = NOW() WHERE trip_id = ? AND is_deboarded = 0';
+          await db.execute(passengerQuery, [tripId]);
       
-          // Respond successfully regardless of the number of affected rows
+          // Update the trips table to set the end time
+          const tripQuery = 'UPDATE trips SET end_time = NOW() WHERE id = ?';
+          await db.execute(tripQuery, [tripId]);
+      
           res.send('Trip ended successfully');
         } catch (error) {
-          console.error('Error ending trip:', error.message, error.stack); // Enhanced error logging
+          console.error('Error ending trip:', error.message, error.stack);
           res.status(500).send('Error ending trip');
         }
       });
@@ -168,8 +173,17 @@ const startServer = async () => {
         res.status(500).send('Error changing password');
       }
     });
-
-    // Add this inside the startServer function after other routes
+    app.get('/api/bus-numbers', authenticateToken, async (req, res) => {
+        try {
+          const query = 'SELECT id, bus_no FROM buses';
+          const [rows] = await db.execute(query);
+          res.json(rows); // Return both id and bus_no
+        } catch (error) {
+          console.error('Error fetching bus numbers:', error);
+          res.status(500).send('Error fetching bus numbers');
+        }
+      });
+      
 app.get('/api/passengers', authenticateToken, async (req, res) => {
     const { tripId } = req.query;
   

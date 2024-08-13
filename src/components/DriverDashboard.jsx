@@ -6,6 +6,10 @@ const DriverDashboard = () => {
   const [time, setTime] = useState('');
   const [trip, setTrip] = useState('Aluva to CIAL');
   const [driverName, setDriverName] = useState('');
+  const [busNumber, setBusNumber] = useState('');
+  const [busNumbers, setBusNumbers] = useState([]);
+  const [filteredBusNumbers, setFilteredBusNumbers] = useState([]);
+  const [isDropdownVisible, setIsDropdownVisible] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -21,8 +25,58 @@ const DriverDashboard = () => {
       navigate('/'); // Redirect to login if not logged in
     } else {
       setDriverName(name); // Set the driver's name
+      fetchBusNumbers(token); // Fetch bus numbers after ensuring the token is present
     }
   }, [navigate]);
+
+  const fetchBusNumbers = async (token) => {
+    try {
+      const response = await fetch(`${backendUrl}/api/bus-numbers`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setBusNumbers(data); // Set the bus numbers
+      } else {
+        console.error('Failed to fetch bus numbers');
+      }
+    } catch (error) {
+      console.error('Error fetching bus numbers:', error);
+    }
+  };
+
+  const handleBusNumberChange = (e) => {
+    const input = e.target.value.trim();
+    setBusNumber(input);
+  
+    if (input === '') {
+      setFilteredBusNumbers([]); // Clear the filtered options if input is empty
+      setIsDropdownVisible(false); // Hide the dropdown
+      return;
+    }
+  
+    const filteredOptions = busNumbers.filter((bus) =>
+      bus.bus_no.toString().includes(input)
+    );
+  
+    if (filteredOptions.length === 0 && input) {
+      setFilteredBusNumbers([{ id: 'invalid', bus_no: 'Invalid Bus Number' }]);
+    } else {
+      setFilteredBusNumbers(filteredOptions);
+    }
+  
+    setIsDropdownVisible(true); // Show the dropdown
+  };
+  
+  const handleDropdownSelect = (selectedBusNumber) => {
+    if (selectedBusNumber !== 'Invalid Bus Number') {
+      setBusNumber(selectedBusNumber);
+      setIsDropdownVisible(false);
+    }
+  };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -30,13 +84,13 @@ const DriverDashboard = () => {
     console.log('Submitting with Token:', token);
 
     try {
-      const response = await fetch(`${backendUrl}/api/start-trip`, { // Corrected template literal usage
+      const response = await fetch(`${backendUrl}/api/start-trip`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // Include the token in the Authorization header
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ trip, time }),
+        body: JSON.stringify({ trip, time, busNumber }), // Include busNumber in the request body
       });
 
       if (response.ok) {
@@ -70,11 +124,11 @@ const DriverDashboard = () => {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${backendUrl}/api/change-password`, { // Corrected template literal usage
+      const response = await fetch(`${backendUrl}/api/change-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` // Include the token in the Authorization header
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({ currentPassword, newPassword }),
       });
@@ -133,33 +187,61 @@ const DriverDashboard = () => {
               <option value="CIAL to Aluva">CIAL to Aluva</option>
             </select>
           </div>
+          <div className="relative flex flex-col">
+            <label htmlFor="bus-number" className="text-sm font-medium mb-2 text-gray-700">Bus Number:</label>
+            <input
+              id="bus-number"
+              type="text"
+              value={busNumber}
+              onChange={handleBusNumberChange}
+              onFocus={() => setIsDropdownVisible(true)}
+              onBlur={() => setTimeout(() => setIsDropdownVisible(false), 200)}
+              className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600"
+              placeholder="Type to search bus number"
+              required
+            />
+            {isDropdownVisible && (
+              <div className="absolute top-full mt-2 border border-gray-300 rounded-md max-h-40 overflow-y-auto bg-white z-10 w-full">
+                {filteredBusNumbers.map((bus) => (
+                  <div
+                    key={bus.id}
+                    onClick={() => bus.bus_no !== 'Invalid Bus Number' && handleDropdownSelect(bus.bus_no)}
+                    className={`p-2 cursor-pointer hover:bg-gray-100 ${bus.bus_no === 'Invalid Bus Number' ? 'text-red-600' : ''}`}
+                  >
+                    {bus.bus_no}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <div className="flex flex-col">
             <label htmlFor="time" className="text-sm font-medium mb-2 text-gray-700">Time:</label>
             <input
-              type="time"
               id="time"
+              type="time"
               value={time}
               onChange={(e) => setTime(e.target.value)}
               className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600"
               required
             />
           </div>
-          <button type="submit" className="w-full py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600">
-            Submit
+          <button type="submit" className="py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600">
+            Start Trip
           </button>
         </form>
       </div>
 
+      {/* Change Password Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
-            <h2 className="text-xl font-semibold mb-4">Change Password</h2>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
+            <h2 className="text-lg font-semibold mb-4">Change Password</h2>
             <form onSubmit={handleChangePassword} className="space-y-4">
               <div className="flex flex-col">
-                <label htmlFor="current-password" className="text-sm font-medium mb-2">Current Password</label>
+                <label htmlFor="current-password" className="text-sm font-medium mb-2 text-gray-700">Current Password:</label>
                 <input
-                  type="password"
                   id="current-password"
+                  type="password"
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600"
@@ -167,10 +249,10 @@ const DriverDashboard = () => {
                 />
               </div>
               <div className="flex flex-col">
-                <label htmlFor="new-password" className="text-sm font-medium mb-2">New Password</label>
+                <label htmlFor="new-password" className="text-sm font-medium mb-2 text-gray-700">New Password:</label>
                 <input
-                  type="password"
                   id="new-password"
+                  type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600"
@@ -178,23 +260,25 @@ const DriverDashboard = () => {
                 />
               </div>
               <div className="flex flex-col">
-                <label htmlFor="confirm-password" className="text-sm font-medium mb-2">Confirm New Password</label>
+                <label htmlFor="confirm-password" className="text-sm font-medium mb-2 text-gray-700">Confirm New Password:</label>
                 <input
-                  type="password"
                   id="confirm-password"
+                  type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-600"
                   required
                 />
+                {passwordError && <p className="text-red-500 text-sm mt-2">{passwordError}</p>}
               </div>
-              {passwordError && <p className="text-red-500 text-sm">{passwordError}</p>}
-              <button type="submit" className="w-full py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-600">
-                Change Password
-              </button>
-              <button type="button" onClick={() => setIsModalOpen(false)} className="w-full py-2 mt-2 bg-gray-300 text-black rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-400">
-                Cancel
-              </button>
+              <div className="flex justify-between mt-4">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="py-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-600">
+                  Cancel
+                </button>
+                <button type="submit" className="py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-600">
+                  Change Password
+                </button>
+              </div>
             </form>
           </div>
         </div>

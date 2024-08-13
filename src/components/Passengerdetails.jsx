@@ -157,13 +157,15 @@ const PassengerDashboard = () => {
           navigate('/driver-dashboard'); // Redirect to DriverDashboard
         } else {
           const errorText = await response.text();
-          console.error('Failed to end trip:', errorText);
+          alert(`Failed to end trip: ${errorText}`);
         }
       } catch (error) {
         console.error('Error ending trip:', error.message);
+        alert('An error occurred while ending the trip. Please try again.');
       }
     }
   };
+  
   
   const handleLogout = async () => {
     if (isTripStarted) {
