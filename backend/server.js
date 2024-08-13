@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import adminRoutes from './routes/adminRoutes.js';
 
 dotenv.config();
 
@@ -210,6 +211,7 @@ app.get('/api/passengers', authenticateToken, async (req, res) => {
     }
   });
   
+  app.use('/api/admin', adminRoutes);
 
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
